@@ -2,6 +2,7 @@ import socket
 import uuid
 import traceback
 import threading
+import time
 
 # .bind()
 # .listen()
@@ -154,6 +155,11 @@ def broadcast(message, chat_id, excluded_users):
         debug(f"Sending message to {user_id}: {cipher}")
         conn.sendall(f"MSG {cipher}".encode())
 
+# acknowledge the message from the client
+def ack(conn):
+    timestamp = time.time()
+    conn.sendall(f"ACK [{timestamp}]".encode()) 
+
 # simple debug function
 def debug(output): 
     if DEBUG: 
@@ -195,6 +201,7 @@ def handle_client(conn, addr):
         # listen for messages from the client and broadcast them to all other users of the same chat
         while True:
             msg, excluded = receive(conn, chat_id, user_id)
+            ack(conn)
             broadcast(msg, chat_id, excluded)
 
     except Exception as e:
